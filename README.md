@@ -13,15 +13,19 @@ This was tested on Mac OSX and should work on all OS's. Here's the quick install
 
 ## Usage
 Display the GCAP metadata
+
       $ gcapy -m file.gcap
 
 Display multiple GCAP metadata
+
       $ gcapy -m file.gcap other-file.gcap
 
 Extract records 1-20 and 45 and display as JSON
+
       $ gcapy -xjr 1-20,45 file.gcap
 
 Extract records from 2255 onwards in binary
+
       $ gcapy -xor 2255- file.gcap
 
 Run `gcapy -h` for the full usage statement.
