@@ -2,7 +2,7 @@ import sys
 import getopt
 
 from process import *
-from util import *
+import util
 
 # global exename for usage in the program
 exename = ""
@@ -171,7 +171,7 @@ def main():
 
     # final choices
     output = None
-    action = None
+    actions = []
 
     # argument counter
     argument = 1
@@ -214,27 +214,25 @@ def main():
     # actions
     ######################
 
-    # make sure only one action has been selected
-    amt = sum([1 if a else 0 for a in [opt_disp_meta, opt_extract, opt_stats]])
-
-    if amt == 0:
-        usage("No action specified")
-    elif amt > 1:
-        usage("Multiple actions specified")
-
     if opt_disp_meta:
-        action = GCAPyAction.Metadata
-    elif opt_extract:
-        action = GCAPyAction.Extract
-    elif opt_stats:
-        action = GCAPyAction.Stats
+        actions += [GCAPyAction.Metadata]
+    if opt_extract:
+        actions += [GCAPyAction.Extract]
+    if opt_stats:
+        actions += [GCAPyAction.Stats]
+
+    # make sure at least one action has been specified
+    if len(actions) == 0:
+        usage("No action specified")
+
+    soleAction = len(actions) == 1
 
     ######################
     # outputs
     ######################
 
     # make sure only one output has been specified
-    amt = sum([1 if a else 0 for a in [opt_output_json, opt_output_ascii, opt_output_binary]])
+    amt = reduce(lambda x,y: x+y, [opt_output_json, opt_output_ascii, opt_output_binary])
 
     # if nothing was chosen, by default choose ascii
     if amt == 0:
@@ -244,7 +242,7 @@ def main():
 
     # we can only output binary when we are extracting
     if opt_output_binary:
-        if not opt_extract:
+        if not opt_extract and soleAction:
             usage("Cannot output binary for anything but record extraction")
 
         if os.isatty(sys.stdout.fileno()):
@@ -255,8 +253,10 @@ def main():
         output = GCAPyOutput.Ascii
     elif opt_output_json:
         output = GCAPyOutput.Json
+        util.interactive = False
     elif opt_output_binary:
         output = GCAPyOutput.Binary
+        util.interactive = False
 
     ######################
     # process the ranges
@@ -269,17 +269,18 @@ def main():
     # no ranges, assume the whole file
     if not len(opt_ranges):
         opt_ranges = [(START_OF_FILE, END_OF_FILE)]
+
     # TODO: make prints go to stderr
     # make sure ranges are only passed in when there is one file
     else:
-        if len(tail) > 1:
-            warning("ranges are ignored when multiple files are processed")
-            opt_ranges = [(START_OF_FILE, END_OF_FILE)]
+        #if len(tail) > 1:
+        #    warning("ranges are ignored when multiple files are processed")
+        #    opt_ranges = [(START_OF_FILE, END_OF_FILE)]
 
-        if opt_disp_meta:
+        if opt_disp_meta and soleAction:
             warning("ranges specified but only displaying metadata")
 
-    exit(process_gcapy(tail, opt_ranges, action, output))
+    exit(process_gcapy(tail, opt_ranges, actions, output))
 
 if __name__ == "__main__":
     main()

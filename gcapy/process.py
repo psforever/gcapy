@@ -15,10 +15,9 @@ class GCAPyOutput(Enum):
     Json = 1
     Binary = 2
 
-def process_gcapy(files, ranges, action, output):
+def pp_task(action, output, files, ranges):
     action_name = ""
     output_name = ""
-    output_process = None # function reference for the output processor
 
     if action is GCAPyAction.Metadata:
         action_name = "Displaying metadata for"
@@ -31,18 +30,27 @@ def process_gcapy(files, ranges, action, output):
 
     if output is GCAPyOutput.Ascii:
         output_name = "text"
-        output_process = output_ascii
     elif output is GCAPyOutput.Json:
         output_name = "JSON"
-        output_process = output_json
     elif output is GCAPyOutput.Binary:
         output_name = "binary"
-        output_process = output_binary
     else:
         raise RuntimeError("unhandled output")
 
-    #print("%s %s with the ranges %s and outputing in %s" % \
-    #        (action_name, str(files), str(ranges), str(output_name)))
+    return "%s %s with the ranges %s and outputing in %s" % \
+           (action_name, str(files), str(ranges), str(output_name))
+
+def process_gcapy(files, ranges, actions, output):
+    output_process = None # function reference for the output processor
+
+    if output is GCAPyOutput.Ascii:
+        output_process = output_ascii
+    elif output is GCAPyOutput.Json:
+        output_process = output_json
+    elif output is GCAPyOutput.Binary:
+        output_process = output_binary
+    else:
+        raise RuntimeError("unhandled output")
 
     # Step 1: fetch the required data
     # Step 2: output the data in the required format
@@ -56,6 +64,8 @@ def process_gcapy(files, ranges, action, output):
     for f in files:
         gcap = None
 
+        info("File: " + f)
+
         try:
             gcap = GCAP.load(f)
         except IOError:
@@ -68,15 +78,15 @@ def process_gcapy(files, ranges, action, output):
             error("GCAP version error: " + str(e))
             return 1
 
-        if action is GCAPyAction.Metadata:
-            print("File: " + f)
-            output_process(gcap.get_metadata())
-        elif action is GCAPyAction.Extract:
-            for therange in ranges:
-                for r in get_gcap_range(gcap, therange):
-                    output_process(r)
-        elif action is GCAPyAction.Stats:
-            pass
+        for action in actions:
+          if action is GCAPyAction.Metadata:
+              output_process(gcap.get_metadata())
+          elif action is GCAPyAction.Extract:
+              for therange in ranges:
+                  for r in get_gcap_range(gcap, therange):
+                      output_process(r)
+          elif action is GCAPyAction.Stats:
+              pass
 
     return 0
 

@@ -1,11 +1,22 @@
 import sys
 import os
 
+interactive = True
+
 def error(msg):
-    sys.stderr.write("error: " + msg + "\n")
+    _write_msg("error: " + msg)
 
 def warning(msg):
-    sys.stderr.write("warning: " + msg + "\n")
+    _write_msg("warning: " + msg)
+
+def info(msg):
+    _write_msg(msg)
+
+def _write_msg(msg):
+    if not interactive:
+        sys.stderr.write(msg + "\n")
+    else:
+        print("I" + msg)
 
 def file_exists(filename):
     return os.path.isfile(filename)
