@@ -92,8 +92,9 @@ def process_gcapy(files, ranges, actions, output):
 
 def get_gcap_range(gcap, therange):
     max_record = gcap.record_count()
+    max_iter = min(therange[1]+1, max_record)
 
-    for i in xrange(therange[0], therange[1]+1):
+    for i in xrange(therange[0], max_iter):
         if i < 1:
             continue
 

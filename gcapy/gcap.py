@@ -64,23 +64,19 @@ class GCAP(object):
         return output
 
     @staticmethod
-    # Expects the file pointer to be pointing right after the header
-    def _read_record_index(mmfile, max_records):
-        start = GCAP.HEADER_LEN
-        recordCnt = 0
-
+    def _read_index_links(mmfile, start, amount):
         index = []
-        while recordCnt < max_records:
+
+        for i in range(amount):
             recordType = struct.unpack_from("B", mmfile, start)[0]
             recordSize = struct.unpack_from("I", mmfile, start+1)[0]
-            item = [recordType, start+5, recordSize]
+            item = [[recordType, start+5, recordSize]]
 
-            index.append(item)
-
+            index += item
             start += 5 + recordSize
-            recordCnt += 1
 
         return index
+
 
     @staticmethod
     def load(filename):
@@ -105,10 +101,8 @@ class GCAP(object):
         if headerHash != compareHash: 
             raise GCAPFormatError("header corrupted")
 
-        index = GCAP._read_record_index(mmfile, parsed['record_count'])
-
         return GCAP(".".join([str(parsed['version_major']), str(parsed['version_minor'])]),
-                parsed, mmfile, index)
+                parsed, mmfile)
 
     def _decode_var_string(self, data):
         firstByte = struct.unpack_from("B", data)[0]
@@ -142,7 +136,7 @@ class GCAP(object):
 
         return (stringOut, nextPointer)
 
-    def __init__(self, version, header, mmfile, index):
+    def __init__(self, version, header, mmfile):
         version_parts = version.split(".")
 
         if len(version_parts) != 2:
@@ -152,7 +146,8 @@ class GCAP(object):
         self.minor = int(version_parts[1])
         self.header = header
         self.mmfile = mmfile
-        self.index = index
+        self.index = {}
+        self.indexWatermark = -1 # start with a blank index
 
         if self.major == 1 and self.minor == 0:
             pass
@@ -163,8 +158,52 @@ class GCAP(object):
         for i in range(self.record_count()):
             yield self.get_record(i)
 
+    def _fetch_and_cache_index_link(self, position):
+        if self.indexWatermark == -1: # fresh index
+            idx = GCAP._read_index_links(self.mmfile, GCAP.HEADER_LEN, position+1)
+
+            for i,v in enumerate(idx):
+                self.index[i] = v
+
+            self.indexWatermark = position
+
+            return self.index[position]
+        else:
+            # we haven't built an index up to this position yet
+            if self.indexWatermark < position:
+                startItem = self.index[self.indexWatermark]
+                start = startItem[1] + startItem[2]
+
+                idx = GCAP._read_index_links(self.mmfile, start, position-self.indexWatermark)
+                for i in range(self.indexWatermark+1, position+1):
+                    self.index[i] = idx[i-(self.indexWatermark+1)]
+
+                self.indexWatermark = position
+
+                return self.index[position]
+            else:
+                return self.index[position]
+
+    def _get_record_index(self, position):
+        assert position >= 0 and position < self.record_count()
+
+        if position in self.index:
+            return self.index[position]
+        else:
+            return self._fetch_and_cache_index_link(position)
+
+    def _get_record_type(self, position):
+        return self._get_record_index(position)[0]
+
+    def _get_record_start(self, position):
+        return self._get_record_index(position)[1]
+
+    def _get_record_end(self, position):
+        link = self._get_record_index(position)
+        return link[2] + link[1]
+
     def get_metadata(self):
-        if self.record_count() > 0 and self.index[0][0] == RecordType.METADATA:
+        if self.record_count() > 0 and self._get_record_type(0) == RecordType.METADATA:
             # extract title and description
             inner_meta = self.get_record(0)
 
@@ -192,11 +231,16 @@ class GCAP(object):
         if which < 0 or which > self.record_count():
             raise IndexError("invalid record index")
 
+        # fetch a fair amount of index items at once (favors sequential access)
+        if which < self.indexWatermark and abs(which - self.indexWatermark) < 10:
+            self._fetch_and_cache_index_link(min(which+300, self.record_count()-1))
+
         # decode the record based off of type
 
-        recType = self.index[which][0]
-        recordStart = self.index[which][1]
-        recordEnd = self.index[which][1] + self.index[which][2]
+        idx = self._get_record_index(which)
+        recType = idx[0]
+        recordStart = idx[1]
+        recordEnd = idx[2] + recordStart
         rawRecord = self.mmfile[recordStart:recordEnd]
 
         result = { "type" : RecordType(recType).name, "number" : which }
@@ -242,6 +286,9 @@ class GCAP(object):
             raise GCAPFormatError("unsupported record type %d" % recType)
 
         return result
+
+    def close(self):
+        self.mmfile.close()
 
 if __name__ == "__main__":
     gcap = GCAP.load("test.gcap")
