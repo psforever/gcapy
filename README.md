@@ -28,13 +28,13 @@ Extract records from 2255 onwards in binary
 
 Run `gcapy -h` for the full usage statement.
 
-GCAPy also comes with `gcapy-stats`, which parses GCAP files for statistics on packet types and their frequencies.
+GCAPy also comes with `gcapy_stats`, which parses GCAP files for statistics on packet types and their frequencies.
 If you wanted to aggregate statistics for all GCAP files in the local directory, you would do this
 
-      $ gcapy-stats *.gcap
+      $ gcapy_stats *.gcap
 
 The statistics are output to STDOUT and progress is show on STDERR. For multiple repeated stats collection,
 a cache may be used
 
-      $ gcapy-stats --cache gcap.cache *.gcap
-      $ gcapy-stats --cache gcap.cache *.gcap # will load stats from cache and run much faster
+      $ gcapy_stats --cache gcap.cache *.gcap
+      $ gcapy_stats --cache gcap.cache *.gcap # will load stats from cache and run much faster
