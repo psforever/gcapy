@@ -4,6 +4,7 @@ import packet_names
 import argparse
 import binascii
 import shelve
+from datetime import datetime
 
 from pprint import PrettyPrinter
 from stats import Stats
@@ -23,9 +24,15 @@ def main(args):
     parser.add_argument('files', nargs='+', metavar='files', help='GCAP file')
     args = parser.parse_args()
 
+    print("GCAPy Stats " + __version__)
+    print("")
+
+    processStart = datetime.now()
+
     stats = []
     okay = []
     failed = []
+    cacheHits = 0
 
     gcap = None
     cache = None
@@ -45,6 +52,7 @@ def main(args):
             if cache is not None:
                 if cache.has_key(key):
                     info("Loaded '%s' from the cache" % f)
+                    cacheHits += 1
 
                     stats += [cache[key]]
                     okay += [[f, meta]]
@@ -78,7 +86,22 @@ def main(args):
     if cache is not None:
         cache.close()
 
-    print("Statistics generated from %d files" % len(okay))
+    processEnd = datetime.now()
+
+    print("Started: " + str(processStart))
+    print("Ended:   " + str(processEnd))
+    print("Time:    " + str(processEnd-processStart))
+    print("")
+
+    note = ""
+
+    if cache is not None:
+        if cacheHits < len(okay):
+            note = " (%d from cache)" % cacheHits
+        else:
+            note = " (all cached)"
+
+    print("Statistics generated from %d files%s" % (len(okay), note))
 
     for o in okay:
         print(" - %s (records %d, GUID %s)" % (o[0],
@@ -106,7 +129,6 @@ def main(args):
         total += s.records
         all_stats += s
 
-    print total
     all_stats.pp()
 
 def process(f, gcap, stats):

@@ -13,15 +13,13 @@ class PacketDest(Enum):
 class Packet:
     @staticmethod
     def getGamePacketNameById(id):
-        if id >= len(packet_names.game_packet_names):
-            return None
+        assert id < len(packet_names.game_packet_names)
 
         return packet_names.game_packet_names[id][1]
 
     @staticmethod
     def getControlPacketNameById(id):
-        if id >= len(packet_names.control_packet_names):
-            return None
+        assert id < len(packet_names.control_packet_names)
 
         return packet_names.control_packet_names[id][1]
 
@@ -31,12 +29,13 @@ class Packet:
             return Packet.getControlPacketNameById(id)
         elif ptype == PacketType.Game:
             return Packet.getGamePacketNameById(id)
+        else:
+            raise RuntimeError("Unsupported packet type: " + str(ptype))
 
     @staticmethod
     def is_unknown(ptype, id):
         if ptype == PacketType.Control:
-            if id >= len(packet_names.control_packet_names):
-                return None
+            assert id < len(packet_names.control_packet_names)
 
             i = packet_names.control_packet_names[id]
 
@@ -45,8 +44,7 @@ class Packet:
             else:
                 return False
         elif ptype == PacketType.Game:
-            if id >= len(packet_names.game_packet_names):
-                return None
+            assert id < len(packet_names.game_packet_names)
 
             i = packet_names.game_packet_names[id]
 
@@ -54,6 +52,8 @@ class Packet:
                 return i[2]
             else:
                 return False
+        else:
+            raise RuntimeError("Unsupported packet type: " + str(ptype))
 
     @staticmethod
     def get_type(data):
