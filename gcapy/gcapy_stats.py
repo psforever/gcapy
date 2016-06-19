@@ -9,7 +9,8 @@ from datetime import datetime
 from pprint import PrettyPrinter
 from stats import Stats
 
-from gcapy.gcap import *
+from . import __version__
+from gcap import *
 from packet import Packet,PacketType, PacketDest
 
 def error(msg):
@@ -18,7 +19,7 @@ def error(msg):
 def info(msg):
     sys.stderr.write(msg + "\n")
 
-def main(args):
+def main():
     parser = argparse.ArgumentParser(description='Gather stats on GCAP files')
     parser.add_argument('--cache', help='GCAP statistics cache')
     parser.add_argument('files', nargs='+', metavar='files', help='GCAP file')
@@ -173,4 +174,4 @@ def process(f, gcap, stats):
     return stats
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()

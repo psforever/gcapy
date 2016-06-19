@@ -78,6 +78,7 @@ setup(
     entry_points={
         'console_scripts': [
             'gcapy = gcapy.gcapy:main',
+            'gcapy-stats = gcapy.gcapy_stats:main',
         ],
     },
 )
