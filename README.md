@@ -7,9 +7,7 @@ GCAPy supports three actions: metadata display, record extraction, and game reco
 ## Installation
 This was tested on Mac OSX, Linux, and Windows under Cygwin. Here's the quick install:
 
-      $ git clone https://github.com/psforever/gcapy
-      $ cd gcapy/
-      $ pip install .
+      $ pip install git+https://github.com/psforever/gcapy.git
 
 ## Usage
 Display the GCAP metadata
