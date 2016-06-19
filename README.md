@@ -5,7 +5,7 @@ The library currently only reads, not writes, GCAP files.
 GCAPy supports three actions: metadata display, record extraction, and game record statistics. Metadata display shows information about the GCAP file, record extraction carves out selected records, and game record statistics give information about PlanetSide packets.
 
 ## Installation
-This was tested on Mac OSX and should work on all OS's. Here's the quick install:
+This was tested on Mac OSX, Linux, and Windows under Cygwin. Here's the quick install:
 
       $ git clone https://github.com/psforever/gcapy
       $ cd gcapy/
@@ -29,3 +29,14 @@ Extract records from 2255 onwards in binary
       $ gcapy -xor 2255- file.gcap
 
 Run `gcapy -h` for the full usage statement.
+
+GCAPy also comes with `gcapy-stats`, which parses GCAP files for statistics on packet types and their frequencies.
+If you wanted to aggregate statistics for all GCAP files in the local directory, you would do this
+
+      $ gcapy-stats *.gcap
+
+The statistics are output to STDOUT and progress is show on STDERR. For multiple repeated stats collection,
+a cache may be used
+
+      $ gcapy-stats --cache gcap.cache *.gcap
+      $ gcapy-stats --cache gcap.cache *.gcap # will load stats from cache and run much faster
