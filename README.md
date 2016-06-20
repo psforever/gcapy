@@ -38,3 +38,6 @@ a cache may be used
 
       $ gcapy-stats --cache gcap.cache *.gcap
       $ gcapy-stats --cache gcap.cache *.gcap # will load stats from cache and run much faster
+
+## Notes
+If you have downloaded GCAPy from GitHub without using pip, your .py files will have underscrores instead of hyphens. This will change the commands required to use the utility, i.e. gcapy-stats will be gcapy_stats.
