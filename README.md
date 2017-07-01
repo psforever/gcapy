@@ -4,6 +4,8 @@ The library currently only reads, not writes, GCAP files.
 
 GCAPy supports three actions: metadata display, record extraction, and game record statistics. Metadata display shows information about the GCAP file, record extraction carves out selected records, and game record statistics give information about PlanetSide packets.
 
+If you are looking for some example captures to play with, download them from here: http://files.psforever.net/captures/
+
 ## Installation
 This was tested on Mac OSX, Linux, and Windows under Cygwin. Here's the quick install:
 
