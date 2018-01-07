@@ -7,7 +7,7 @@ GCAPy supports three actions: metadata display, record extraction, and game reco
 If you are looking for some example captures to play with, download them from here: http://files.psforever.net/captures/
 
 ## Installation
-This was tested on Mac OSX, Linux, and Windows under Cygwin. Here's the quick install:
+This was tested with Python 2.7 on Mac OSX, Linux, and Windows under Cygwin. Here's the quick install:
 
       $ pip install git+https://github.com/psforever/gcapy.git
 
