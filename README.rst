@@ -14,8 +14,8 @@ record statistics give information about PlanetSide packets.
 Installation
 ------------
 
-This was tested on Mac OSX and should work on all OS's. Here's the quick
-install:
+This was tested with Python 2.7 on Mac OSX and should work on all OS's. Here's
+the quick install:
 
 ::
 
