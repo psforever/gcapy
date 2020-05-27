@@ -6,6 +6,7 @@ import hashlib
 import mmap
 import os
 import json
+import sys
 
 from collections import OrderedDict
 from binascii import hexlify
@@ -91,14 +92,13 @@ class GCAP(object):
             raise GCAPFormatError("invalid header size. got %d, expected %d" % (len(header), GCAP.HEADER_LEN))
 
         parsed = GCAP._parse_header(header)
-
-        if parsed['magic'] != "GCAP":
+        if parsed['magic'] != b'GCAP':
             raise GCAPFormatError("invalid magic bytes")
 
         headerHash = parsed['sha256_hash']
         compareHash = hashlib.sha256(header[0:GCAP.HEADER_LEN-32]).digest()
 
-        if headerHash != compareHash: 
+        if headerHash != compareHash:
             raise GCAPFormatError("header corrupted")
 
         return GCAP(".".join([str(parsed['version_major']), str(parsed['version_minor'])]),
@@ -111,10 +111,6 @@ class GCAP(object):
         # regardless of type
         stringType = firstByte & ~0xc0
         stringSize = (firstByte & 0xc0) >> 6
-
-        size = 0
-        nextPointer = 0
-        stringOut = ""
 
         # 1 byte
         if stringSize == 0:
@@ -134,7 +130,8 @@ class GCAP(object):
         else:
             raise GCAPFormatError("unsupported variable string type")
 
-        return (stringOut, nextPointer)
+
+        return (stringOut if sys.version_info[0] < 3 or stringType == 2 else stringOut.decode('utf-8'), nextPointer)
 
     def __init__(self, version, header, mmfile):
         version_parts = version.split(".")
@@ -294,4 +291,4 @@ if __name__ == "__main__":
     gcap = GCAP.load("test.gcap")
 
     for i in gcap:
-        print "Record: " + str(dict(i))
+        print("Record: " + str(dict(i)))

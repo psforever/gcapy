@@ -1,8 +1,9 @@
 import sys
 import getopt
+from functools import reduce
 
-from process import *
-import util
+from .process import *
+from . import util
 
 # global exename for usage in the program
 exename = ""
@@ -12,7 +13,7 @@ START_OF_FILE = -1
 END_OF_FILE = 4000000000
 
 def usage(reason = ''):
-    if reason is not '':
+    if reason != '':
         print("Error: " + reason)
         print("")
 
@@ -43,7 +44,7 @@ Output modes:
     sys.exit(2)
 
 def exit(code, reason=''):
-    if reason is not '':
+    if reason != '':
         print(reason)
 
     sys.exit(code)
@@ -57,7 +58,7 @@ def parse_ranges(text):
     output = []
 
     for r in ranges:
-        if r is "":
+        if r == "":
             return []
 
         interval = r.split('-')
@@ -82,7 +83,7 @@ def parse_ranges(text):
                 lnumber = 0
                 rnumber = 0
 
-                if interval[0] is "":
+                if interval[0] == "":
                     lnumber = START_OF_FILE
                     terminator = True
                 else:
@@ -91,7 +92,7 @@ def parse_ranges(text):
                     if lnumber < 1:
                         return []
 
-                if interval[1] is "":
+                if interval[1] == "":
                     rnumber = END_OF_FILE
                     terminator = True
                 else:

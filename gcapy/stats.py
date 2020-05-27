@@ -1,6 +1,5 @@
-import packet_names
-
-from packet import Packet,PacketType, PacketDest
+from .packet import Packet,PacketType, PacketDest
+from . import packet_names
 
 class Stats:
     def __init__(self, verbose=False):
