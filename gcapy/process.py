@@ -1,9 +1,10 @@
 import base64
+import sys
 from binascii import hexlify
 from enum import Enum
 
-from util import *
-from gcap import *
+from .util import *
+from .gcap import *
 
 class GCAPyAction(Enum):
     Metadata = 0
@@ -94,7 +95,7 @@ def get_gcap_range(gcap, therange):
     max_record = gcap.record_count()
     max_iter = min(therange[1]+1, max_record)
 
-    for i in xrange(therange[0], max_iter):
+    for i in range(therange[0], max_iter):
         if i < 1:
             continue
 
@@ -111,7 +112,7 @@ def output_ascii(data):
     record = data['record']
 
     if rtype == "METADATA":
-        guid = hexlify(record['guid'])
+        guid = hexlify(record['guid']) if sys.version_info[0] < 3 else record['guid'].hex()
         start = record['start_time']
         end = record['end_time']
 
@@ -141,7 +142,7 @@ Description:
         if gtype == "PACKET":
             ptype = record['type']
             dst = record['destination']
-            contents = hexlify(record['record'])
+            contents = hexlify(record['record']) if sys.version_info[0] < 3 else record['record'].hex()
 
             if dst == "CLIENT":
                 src = "SERVER"
@@ -161,15 +162,17 @@ def output_json(data):
     record = data['record']
 
     if rtype == "METADATA":
-        record['guid'] = hexlify(record['guid'])
-        record['sha256_hash'] = hexlify(record['sha256_hash'])
+        record['guid'] = hexlify(record['guid']) if sys.version_info[0] < 3 else record['guid'].hex()
+        record['sha256_hash'] = hexlify(record['sha256_hash']) if sys.version_info[0] < 3 else record['sha256_hash'].hex()
     elif rtype == "GAME":
         gtype = record['type']
         record = record['record']
 
         if gtype == "PACKET":
             ptype = record['type']
-            record['record'] = base64.encodestring(record['record']).strip()
+            record['record'] = encode_record(record['record'])
+        else:
+            record = encode_record(record)
 
     print(json.dumps(data))
 
@@ -185,3 +188,9 @@ def output_binary(data):
             ptype = record['type']
             contents = record['record']
             sys.stdout.write(contents)
+
+def encode_record(record):
+    if sys.version_info[0] < 3:
+        return base64.encodestring(record).strip()
+    else:
+        return base64.b64encode(record).decode("ascii").strip()

@@ -1,6 +1,8 @@
-import packet_names
+import sys
 import struct
 from enum import Enum
+
+from . import packet_names
 
 class PacketType(Enum):
     Control = 0
@@ -60,13 +62,13 @@ class Packet:
         if len(data) == 0:
             return (None, -1, False, 0)
 
-        byte0 = ord(data[0])
+        byte0 = ord(data[0]) if sys.version_info[0] < 3 else data[0]
 
         if byte0 == 0: # control packet
             if len(data) == 1:
                 return (None, -1, False, 1)
 
-            byte1 = ord(data[1])
+            byte1 = ord(data[0]) if sys.version_info[1] < 3 else data[1]
 
             if byte1 >= len(packet_names.control_packet_names):
                 return (None, byte0, False, 2)
@@ -87,13 +89,13 @@ class Packet:
         if len(data) == 0:
             return (None, -1, "", False, 0)
 
-        byte0 = ord(data[0])
+        byte0 = ord(data[0]) if sys.version_info[0] < 3 else data[0]
 
         if byte0 == 0: # control packet
             if len(data) == 1:
                 return (None, -1, "", False, 1)
 
-            byte1 = ord(data[1])
+            byte1 = ord(data[1]) if sys.version_info[0] < 3 else data[1]
 
             if byte1 >= len(packet_names.control_packet_names):
                 return (None, byte0, "", False, 2)
@@ -120,7 +122,7 @@ class Packet:
         if pid == 0x03: # "MultiPacket"
             packets = []
             while nextByte < len(data):
-                byteCnt = struct.unpack("B", data[nextByte])[0]
+                byteCnt = struct.unpack("B", data[nextByte])[0] if sys.version_info[0] < 3 else data[nextByte]
                 nextByte += 1
 
                 packets += Packet.unroll(data[nextByte:nextByte+byteCnt])
@@ -138,7 +140,7 @@ class Packet:
                     count = 0
 
                     if s == 8:
-                        count = struct.unpack("B", data[nextByte])[0]
+                        count = struct.unpack("B", data[nextByte])[0] if sys.version_info[0] < 3 else data[nextByte]
                         nextByte += 1
                     elif s == 16:
                         count = struct.unpack("H", data[nextByte:nextByte+2])[0]

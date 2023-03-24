@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 import sys
-import packet_names
 import argparse
 import binascii
 import shelve
 from datetime import datetime
-
 from pprint import PrettyPrinter
-from stats import Stats
 
+from .stats import Stats
 from . import __version__
-from gcap import *
-from packet import Packet,PacketType, PacketDest
+from . import packet_names
+from .gcap import *
+from .packet import Packet,PacketType, PacketDest
 
 def error(msg):
     sys.stderr.write("error: " + msg + "\n")
@@ -48,7 +47,7 @@ def main():
         try:
             gcap = GCAP.load(f)
             meta = gcap.get_metadata()
-            key = binascii.hexlify(meta['record']['guid'])
+            key = binascii.hexlify(meta['record']['guid']) if sys.version_info[0] < 3 else meta['record']['guid'].hex()
 
             if cache is not None:
                 if cache.has_key(key):
@@ -107,7 +106,9 @@ def main():
     for o in okay:
         print(" - %s (records %d, GUID %s)" % (o[0],
             o[1]['record']['record_count'],
-            binascii.hexlify(o[1]['record']['guid'])))
+            binascii.hexlify(o[1]['record']['guid']) if sys.version_info[0] < 3 else o[1]['record']['guid'].hex()
+            )
+        )
 
     if len(failed):
         print("")
